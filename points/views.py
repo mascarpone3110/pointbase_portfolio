@@ -165,7 +165,7 @@ class CreateOrderAPI(generics.GenericAPIView):
     def post(self, request):
         user = request.user
         items = request.data.get("items", [])
-        fee = int(request.data.get("fee", 0))  # ← フロントからの fee を取得
+        fee = int(request.data.get("fee", 0)) 
 
         if not items:
             return Response({"error": "No items in order."}, status=400)
@@ -536,41 +536,6 @@ class ClassRankingView(APIView):
             for s in students
         ]
         return Response(data)
-
-# class StudentsByClassView(APIView):
-#     """
-#     クラス別の生徒一覧取得
-#     - /api/classes/all/   → 全生徒
-#     - /api/classes/none/  → クラス未所属
-#     - /api/classes/1/     → class_ref_id = 1 の生徒
-#     """
-#     permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
-
-#     def get(self, request, mode, class_id=None):
-#         # ベースクエリ：生徒のみ
-#         qs = UserProfile.objects.filter(role="student").select_related("user", "class_ref")
-
-#         if mode == "all":
-#             # そのまま全て
-#             pass
-
-#         elif mode == "none":
-#             # クラス未所属（class_ref が NULL）
-#             qs = qs.filter(class_ref__isnull=True)
-
-#         elif mode == "by_class":
-#             qs = qs.filter(class_ref_id=class_id)
-
-#         else:
-#             return Response({"detail": "invalid mode"}, status=400)
-
-#         # 既存の StudentSerializer を再利用する場合
-#         serializer = StudentSerializer(qs, many=True)
-#         return Response(serializer.data)
-    
-
-
-
 
 class AdminChangeStudentClassView(APIView):
     permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
