@@ -1,7 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .serializers import ItemSerializer, OrderSerializer, OrderDetailSerializer,PointTransactionSerializer
+from .serializers import ItemSerializer, OrderSerializer, OrderDetailSerializer,PointTransactionSerializer, StudentSerializer, TeacherPointAddSerializer
 from .models import Item, Order, OrderItem, PointManager, PointTransaction
 from rest_framework.views import APIView
 from accounts.models import UserProfile, User
@@ -326,17 +326,8 @@ class OrderDetailAPI(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
-
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-
-from .permissions import IsTeacherOrAdmin
-from .serializers import StudentSerializer, TeacherPointAddSerializer
-from accounts.models import User, UserProfile
-from .models import PointManager, PointTransaction
-
+    
+    
 
 class TeacherStudentsView(APIView):
     permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
