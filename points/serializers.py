@@ -5,9 +5,42 @@ from accounts.models import UserProfile, User
 from .models import PointManager, PointTransaction
 
 
+# class ItemSerializer(serializers.ModelSerializer):
+#     image = serializers.SerializerMethodField()
+#     created_at = serializers.DateTimeField(read_only=True)
+
+#     class Meta:
+#         model = Item
+#         fields = [
+#             "id",
+#             "name",
+#             "price",
+#             "stock",
+#             "description",
+#             "image",
+#             "created_at",
+#             "is_published"
+#         ]
+#         read_only_fields = ["id", "price", "created_at"]
+
+#     def get_image(self, obj):
+#         request = self.context.get("request")
+#         if not obj.image:
+#             return None
+#         if request:
+#             return request.build_absolute_uri(obj.image.url)
+#         return obj.image.url  # fallback
+
+
+# class ItemSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Item
+#         fields = "__all__"
+#         read_only_fields = ["id", "created_at"]
+
 class ItemSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
-    created_at = serializers.DateTimeField(read_only=True)
+    # image = serializers.ImageField(required=False, allow_null=True)
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
@@ -17,52 +50,59 @@ class ItemSerializer(serializers.ModelSerializer):
             "price",
             "stock",
             "description",
-            "image",
+            # "image",      
+            "image_url", 
             "created_at",
+            "is_published",
         ]
-        read_only_fields = ["id", "price", "created_at"]
 
-    def get_image(self, obj):
+    def get_image_url(self, obj):
         request = self.context.get("request")
         if not obj.image:
             return None
         if request:
             return request.build_absolute_uri(obj.image.url)
-        return obj.image.url  # fallback
-
-
-# class ItemSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Item
-#         fields = "__all__"
-#         read_only_fields = ["id", "created_at"]
+        return obj.image.url
 
 
 
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderItem
-        fields = ["id", "item_name", "quantity", "price", "asin"]
+        fields = ["id", "item", "item_name", "quantity", "price", "image"]
+
+    def get_image(self, obj):
+        # Itemモデルの image をそのまま返す（URL or ImageField）
+        if obj.item and obj.item.image:
+            try:
+                return obj.item.image.url  # ImageField の場合
+            except:
+                return obj.item.image      # URL文字列の場合
+        return None
+
 
 class OrderSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
     name = serializers.CharField(source="user.name", read_only=True)
     user_id = serializers.CharField(source="user.id", read_only=True)
-
+    items = OrderItemSerializer(many=True, read_only=True)
     class Meta:
         model = Order
         fields = [
             "id",
+            "total_amount",
             "user_id",
             "username",
             "name",
-            "total_amount",
             "status",
             "created_at",
             "delivered_at",
+            "canceled_at",
+            "items",
         ]
 
 
@@ -72,7 +112,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ["id", "total_amount", "status", "created_at", "delivered_at" ,"items"]
+        fields = ["id", "total_amount", "fee", "status", "created_at", "delivered_at" ,"items"]
 
 
 class StudentSerializer(serializers.ModelSerializer):

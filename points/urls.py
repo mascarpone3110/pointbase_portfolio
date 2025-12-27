@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (
     # ----- 商品 -----
     ItemListView, ItemCreateView, ItemDetailAPI, ItemUpdateView, ItemDeleteView,
-
+    ItemAdminDetailView,
     # ----- 注文 -----
     OrderListAPI, CreateOrderAPI, OrderDetailAPI,
     CancelOrderAPI, MarkOrderDeliveredAPI,
@@ -30,6 +30,7 @@ urlpatterns = [
     path("items/", ItemListView.as_view()),
     path("items/create/", ItemCreateView.as_view()),
     path("items/<str:id>/", ItemDetailAPI.as_view()),
+    path("items/<str:id>/admin/", ItemAdminDetailView.as_view()),
     path("items/<str:id>/update/", ItemUpdateView.as_view()),
     path("items/<str:id>/delete/", ItemDeleteView.as_view()),
 

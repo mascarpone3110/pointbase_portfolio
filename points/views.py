@@ -19,17 +19,38 @@ from django.utils.timezone import now
 
 # Item 
 
+# class ItemCreateView(APIView):
+#     permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
+
+#     def post(self, request):
+#         serializer = ItemSerializer(data=request.data)
+    
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({"message": "Item created", "item": serializer.data})
+
+#         return Response(serializer.errors, status=400)
 class ItemCreateView(APIView):
     permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
 
     def post(self, request):
-        serializer = ItemSerializer(data=request.data)
+        item = Item.objects.create(
+            name=request.data.get("name"),
+            price=request.data.get("price"),
+            stock=request.data.get("stock"),
+            description=request.data.get("description"),
+            is_published=str_to_bool(request.data.get("is_published")),  # ★ここ
+            image=request.FILES.get("image"),
+        )
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "Item created", "item": serializer.data})
+        return Response(
+            {
+                "message": "Item created",
+                "item": ItemSerializer(item, context={"request": request}).data,
+            },
+            status=201,
+        )
 
-        return Response(serializer.errors, status=400)
 
 class ItemListView(APIView):
     permission_classes = [IsAuthenticated]
@@ -46,8 +67,13 @@ class ItemDetailAPI(generics.RetrieveAPIView):
 
     def get_serializer_context(self):
         return {"request": self.request}
-    
-# Boolean の文字列 → Python bool へ変換
+
+class ItemAdminDetailView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated, IsTeacherOrAdmin]
+    queryset = Item.objects.all()   # ← is_published を見ない
+    serializer_class = ItemSerializer
+    lookup_field = "id"
+
 def str_to_bool(val):
     if isinstance(val, bool):
         return val
@@ -160,8 +186,9 @@ class CreateOrderAPI(generics.GenericAPIView):
         # 注文オブジェクト作成（合計ポイント反映）
         order = Order.objects.create(
             user=user,
-            total_amount=grand_total,  # ← ここを total_points → grand_total に修正
-            status="pending"
+            total_amount=grand_total, 
+            status="pending",
+            fee=fee
         )
 
         # 注文アイテム保存
@@ -176,13 +203,14 @@ class CreateOrderAPI(generics.GenericAPIView):
                 item_name=data["name"],
                 quantity=data["quantity"],
                 price=data["price"],
+                fee=fee
             )
 
-        # ① ポイント減算（手数料込み）
+        # ポイント減算（手数料込み）
         point_manager.point_balance -= grand_total
         point_manager.save()
 
-        # ② トランザクション履歴
+        # トランザクション履歴
         PointTransaction.objects.create(
             user=user,
             points=-grand_total,
@@ -191,11 +219,11 @@ class CreateOrderAPI(generics.GenericAPIView):
             balance_after=point_manager.point_balance
         )
 
-        # ③ 注文を success に更新
+        # 注文を success に更新
         order.status = "success"
         order.save()
 
-        # ④ レスポンス
+        # レスポンス
         return Response({
             "message": "Order created",
             "order_id": order.id,
@@ -234,10 +262,11 @@ class CancelOrderAPI(APIView):
             points=order.total_amount,
             transaction_type="refund",
             description=f"注文キャンセル ID {order.id}",
-            balance_after=point_manager.point_balance
+            balance_after=point_manager.point_balance,
         )
 
         order.status = "canceled"
+        order.canceled_at = now()
         order.save()
 
         return Response({
@@ -245,8 +274,6 @@ class CancelOrderAPI(APIView):
             "order_id": order.id,
             "new_balance": point_manager.point_balance
         })
-
-
 
 
 
