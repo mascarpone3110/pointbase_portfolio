@@ -4,7 +4,10 @@ from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-ENV_MODE = os.getenv("ENV_MODE", "dev").lower()
+# =======================
+# Environment
+# =======================
+ENV_MODE = os.getenv("ENV_MODE", "dev").lower()  # local / dev / prod
 
 def _load_dotenv_if_needed():
     if ENV_MODE in ("local", "dev"):
@@ -18,13 +21,13 @@ def _load_dotenv_if_needed():
 
 _load_dotenv_if_needed()
 
-def get_bool(name, default=False):
+def get_bool(name: str, default: bool = False) -> bool:
     v = os.getenv(name)
     if v is None:
         return default
     return v.strip().lower() in ("1", "true", "yes", "on")
 
-def get_int(name, default):
+def get_int(name: str, default: int) -> int:
     v = os.getenv(name)
     if not v:
         return default
@@ -33,7 +36,7 @@ def get_int(name, default):
     except ValueError:
         return default
 
-def get_list(name, default=None, sep=","):
+def get_list(name: str, default=None, sep=","):
     if default is None:
         default = []
     v = os.getenv(name)
@@ -42,7 +45,7 @@ def get_list(name, default=None, sep=","):
     return [x.strip() for x in v.split(sep) if x.strip()]
 
 # =======================
-# Security / Core
+# Core / Security
 # =======================
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
@@ -55,8 +58,14 @@ ALLOWED_HOSTS = get_list(
     default=["localhost", "127.0.0.1"]
 )
 
+# CloudFront/ALB で HTTPS 判定
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
 USE_HTTPS = get_bool("USE_HTTPS", default=(ENV_MODE == "prod"))
+
+# ✅重要: CloudFrontでHTTP→HTTPSを強制するので Django は redirect しない
+SECURE_SSL_REDIRECT = False
 
 # =======================
 # Applications
@@ -103,12 +112,19 @@ SIMPLE_JWT = {
     "AUTH_COOKIE_SAMESITE": os.getenv("COOKIE_SAMESITE", "Lax"),
 }
 
+# =======================
+# Middleware
+# =======================
 MIDDLEWARE = [
+    "crowdfund_project.middleware.ALBHealthCheckBypassMiddleware",
+
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -135,11 +151,20 @@ TEMPLATES = [{
 # CORS / CSRF
 # =======================
 CORS_ALLOW_CREDENTIALS = True
+
+# ✅ 注意: CORS_ALLOWED_ORIGINS に "https://*.cloudfront.net" は入れない
+# CloudFrontの実ドメイン or 独自ドメインを完全一致で
 CORS_ALLOWED_ORIGINS = get_list("CORS_ALLOWED_ORIGINS", default=[])
+
+# ✅ CSRF_TRUSTED_ORIGINS も完全一致推奨
 CSRF_TRUSTED_ORIGINS = get_list("CSRF_TRUSTED_ORIGINS", default=[])
 
 SESSION_COOKIE_SECURE = USE_HTTPS
 CSRF_COOKIE_SECURE = USE_HTTPS
+
+SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
+
 CSRF_COOKIE_HTTPONLY = get_bool("CSRF_COOKIE_HTTPONLY", default=False)
 
 # =======================
@@ -182,19 +207,21 @@ else:
 # =======================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # =======================
 # Security Headers
 # =======================
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+REFERRER_POLICY = "same-origin"
+
 if ENV_MODE == "prod":
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_BROWSER_XSS_FILTER = True
-    X_FRAME_OPTIONS = "DENY"
+    SECURE_HSTS_SECONDS = get_int("SECURE_HSTS_SECONDS", 60)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = get_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", False)
+    SECURE_HSTS_PRELOAD = get_bool("SECURE_HSTS_PRELOAD", False)
 
 # =======================
 # Logging
