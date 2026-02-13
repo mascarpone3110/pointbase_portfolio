@@ -38,7 +38,6 @@ PointBase は、学童施設・教育機関での利用を想定した
 - JWT（Access / Refresh）認証
 - HttpOnly + Secure 属性付き Cookie によるトークン管理
 - CSRF 対策
-- TOTP（二段階認証）
 - `/api/me/` による認証状態の再検証
 
 ### ポイント管理
@@ -86,6 +85,7 @@ PointBase は、学童施設・教育機関での利用を想定した
 - Application Load Balancer
 - CloudFront
 - RDS
+- S3
 - IAM
 - WAF
 - GuardDuty
@@ -100,6 +100,7 @@ AWS Organizations を前提とした構成で構築しています。
 - Production Account
 - Log Archive Account
 - Security Account
+- Development Account
 
 ログおよびセキュリティ監視を分離し、
 実務を想定したセキュアなアカウント設計を行っています。
@@ -121,7 +122,6 @@ AWS Organizations を前提とした構成で構築しています。
 ### セキュリティ対策
 
 - CSRF トークンによる二重送信対策
-- TOTP（二段階認証）
 - CloudFront 経由のみ ALB に到達可能な構成
 - AWS WAF による防御
 - GuardDuty / SecurityHub による脅威検知
@@ -136,7 +136,7 @@ AWS Organizations を前提とした構成で構築しています。
 - 認証情報を localStorage に保存しない設計
 - 業務アプリに近い注文・ステータス管理フローを再現
 - マルチアカウントによるログ・監視の分離
-- Terraform による再現可能なインフラ構成
+
 - 将来的な Cognito 置き換えを前提とした設計
 
 ---
@@ -144,6 +144,7 @@ AWS Organizations を前提とした構成で構築しています。
 ## 今後の改善予定
 
 - Amazon Cognito への認証基盤移行
+- Terraform による再現可能なインフラ構成
 - RBAC の細分化
 - 監査ログの強化
 - CI/CD パイプライン整備
