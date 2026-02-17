@@ -133,6 +133,9 @@ AWS Organizations を前提とした構成で構築しています。
 セキュリティを後付けにせず、設計段階から考慮しています。
 
 ---
+## アーキテクチャ図
+![AWS Architecture](./images/architecture.png)
+
 
 ## 設計上の工夫
 
