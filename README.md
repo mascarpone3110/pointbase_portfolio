@@ -141,6 +141,12 @@ PointBase は、学童施設・教育機関での利用を想定した
 ## アーキテクチャ図
 ![AWS Architecture](./images/architecture.png)
 
+CloudFront をエントリーポイントとし、
+ALB 経由で Private Subnet 上の ECS (Fargate) に到達する構成としています。
+
+RDS は Private Subnet に配置し、
+アプリケーション経由のみアクセス可能とすることで
+外部公開を防いでいます。
 
 ## 設計上の工夫
 
