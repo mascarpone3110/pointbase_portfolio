@@ -97,13 +97,18 @@ PointBase は、学童施設・教育機関での利用を想定した
 
 ## AWS マルチアカウント構成
 
-AWS Organizations を前提とした構成で構築しています。
+本プロジェクトは AWS Organizations を前提とした
+マルチアカウント構成で設計しています。
 
-- Management Account
-- Production Account
-- Log Archive Account
-- Security Account
-- Development Account
+![Multi Account](./images/multiaccount.png)
+
+各アカウントの役割は以下の通りです。
+
+- Management Account：組織管理・IAM Identity Center
+- Production Account：本番環境（ECS / RDS）
+- Security Account：SecurityHub / GuardDuty / Config
+- Log Archive Account：CloudTrail・各種ログ集約
+- Development Account：検証環境
 
 ログおよびセキュリティ監視を分離し、
 実務を想定したセキュアなアカウント設計を行っています。
