@@ -9,13 +9,14 @@
 
 ---
 
-## デモ
-![demo](./images/demo.gif)   ← ログイン〜注文まで30秒程度のGIF
+## デモ（ログイン〜注文まで）
+![demo](./images/demo.gif) 
+
 
 ## スクリーンショット
-| ダッシュボード | 注文管理 |
+| 商品管理 | ポイント付与管理 |
 |---|---|
-| ![](./images/dashboard.png) | ![](./images/orders.png) |
+| ![](./images/createproducts.png) | ![](./images/pointgrant.png) |
 
 ## 背景・課題
 
