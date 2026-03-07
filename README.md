@@ -3,6 +3,10 @@
 > 自分が運営するプログラミング教室（140名規模）の業務課題を解決するために開発した、ポイント・注文管理 Web アプリケーション。  
 > フロントエンド・バックエンド・インフラまでを一人で設計・実装し、実教室でのプロトタイプ運用を経て改善を重ねた。
 
+> 📌 本リポジトリについて
+>インフラ構成・認証フローの全体設計をREADMEに記載しています。
+>公開コードは認証機能を中心としたフロントエンド・バックエンドの一部です。
+
 [![Next.js](https://img.shields.io/badge/Next.js-App_Router-black?logo=next.js)](https://nextjs.org/)
 [![Django REST Framework](https://img.shields.io/badge/Django_REST_Framework-3.x-darkgreen?logo=django)](https://www.django-rest-framework.org/)
 [![AWS](https://img.shields.io/badge/AWS-Multi_Account-orange?logo=amazon-aws)](https://aws.amazon.com/)
